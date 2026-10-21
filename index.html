@@ -116,6 +116,7 @@
       font-size: 1.15rem;
       line-height: 1.5;
       margin-bottom: 1.5rem;
+      white-space: pre-line;
     }
 
     .options-grid {
@@ -290,14 +291,14 @@
 
       quizApp.innerHTML = `
         <div class="quiz-header">
-          <span class="category-badge">${escapeHtml(q.category || 'General')}</span>
+          <span class="category-badge">${escapeHtml(q.category || 'Formal Methods')}</span>
           <span>Question ${currentIndex + 1} of ${currentQuestions.length}</span>
         </div>
         <div class="question-text">${escapeHtml(q.question)}</div>
         <div class="options-grid">
           ${optKeys.map(k => `
             <button class="option-btn" data-opt="${k}">
-              <strong>${k}:</strong>${escapeHtml(q.options[k] || '')}
+              <strong>${k}:</strong> <span>${escapeHtml(q.options[k] || '')}</span>
             </button>
           `).join('')}
         </div>
@@ -359,7 +360,7 @@
 
     function renderCompletion() {
       const total = currentQuestions.length;
-      const pct = Math.round((score / total) * 100);
+      const pct = total > 0 ? Math.round((score / total) * 100) : 0;
 
       quizApp.innerHTML = `
         <div class="score-screen">
