@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Formal Methods Daily Quiz Engine</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #38bdf8;
+      --primary-hover: #0ea5e9;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --border: #334155;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      padding: 2rem 1rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 760px;
+    }
+
+    header {
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: var(--primary);
+    }
+
+    .day-selector {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+
+    .day-btn {
+      background-color: var(--card-bg);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.85rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+    }
+
+    .day-btn:hover {
+      border-color: var(--primary);
+      color: var(--text-main);
+    }
+
+    .day-btn.active {
+      background-color: var(--primary);
+      color: #000;
+      font-weight: 600;
+      border-color: var(--primary);
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.75rem;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    }
+
+    .status-msg {
+      text-align: center;
+      padding: 2rem 0;
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    .quiz-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .category-badge {
+      background-color: rgba(56, 189, 248, 0.1);
+      color: var(--primary);
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+    }
+
+    .question-text {
+      font-size: 1.15rem;
+      line-height: 1.5;
+      margin-bottom: 1.5rem;
+    }
+
+    .options-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .option-btn {
+      text-align: left;
+      background: #0f172a;
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 0.85rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--primary);
+    }
+
+    .option-btn:disabled {
+      cursor: default;
+    }
+
+    .option-btn.correct {
+      border-color: var(--success);
+      background-color: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+    }
+
+    .option-btn.incorrect {
+      border-color: var(--danger);
+      background-color: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+    }
+
+    .explanation {
+      background: #0f172a;
+      border-left: 3px solid var(--primary);
+      padding: 0.85rem 1rem;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      margin-bottom: 1.5rem;
+      color: var(--text-muted);
+    }
+
+    .explanation strong {
+      color: var(--text-main);
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    .action-row {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .next-btn {
+      background-color: var(--primary);
+      color: #000;
+      border: none;
+      padding: 0.65rem 1.25rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .next-btn:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .score-screen {
+      text-align: center;
+      padding: 1.5rem 0;
+    }
+
+    .score-screen h2 {
+      margin-bottom: 0.5rem;
+      font-size: 1.5rem;
+    }
+
+    .score-num {
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 1rem 0;
+    }
+
+    .log-status {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>Formal Methods Daily Quiz</h1>
+      <nav class="day-selector" id="daySelector">
+        <button class="day-btn active" data-day="1">Day 1 (Q1-20)</button>
+        <button class="day-btn" data-day="2">Day 2 (Q21-40)</button>
+        <button class="day-btn" data-day="3">Day 3 (Q41-60)</button>
+        <button class="day-btn" data-day="4">Day 4 (Q61-80)</button>
+        <button class="day-btn" data-day="5">Day 5+ (Exam Mode)</button>
+      </nav>
+    </header>
+
+    <main id="quizApp" class="card">
+      <div id="loading" class="status-msg">Loading practice batch...</div>
+    </main>
+  </div>
+
+  <script>
+    let currentQuestions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let selectedDay = 1;
+    let answered = false;
+
+    const quizApp = document.getElementById('quizApp');
+    const daySelector = document.getElementById('daySelector');
+
+    daySelector.addEventListener('click', (e) => {
+      const btn = e.target.closest('.day-btn');
+      if (!btn) return;
+      document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedDay = btn.getAttribute('data-day');
+      fetchBatch(selectedDay);
+    });
+
+    function fetchBatch(day) {
+      quizApp.innerHTML = '<div class="status-msg">Loading practice batch...</div>';
+      google.script.run
+        .withSuccessHandler(renderQuizBatch)
+        .withFailureHandler(showError)
+        .getDailyQuestions(day);
+    }
+
+    function renderQuizBatch(res) {
+      if (res.error) {
+        showError(res.error);
+        return;
+      }
+      currentQuestions = res.questions || [];
+      currentIndex = 0;
+      score = 0;
+
+      if (!currentQuestions.length) {
+        quizApp.innerHTML = '<div class="status-msg">No questions available for this selection.</div>';
+        return;
+      }
+
+      renderCurrentQuestion();
+    }
+
+    function renderCurrentQuestion() {
+      answered = false;
+      const q = currentQuestions[currentIndex];
+      const optKeys = ['A', 'B', 'C', 'D'];
+
+      quizApp.innerHTML = `
+        <div class="quiz-header">
+          <span class="category-badge">${escapeHtml(q.category || 'General')}</span>
+          <span>Question ${currentIndex + 1} of ${currentQuestions.length}</span>
+        </div>
+        <div class="question-text">${escapeHtml(q.question)}</div>
+        <div class="options-grid">
+          ${optKeys.map(k => `
+            <button class="option-btn" data-opt="${k}">
+              <strong>${k}:</strong>${escapeHtml(q.options[k] || '')}
+            </button>
+          `).join('')}
+        </div>
+        <div id="explanationBox" style="display: none;"></div>
+        <div class="action-row" id="actionRow" style="display: none;">
+          <button class="next-btn" id="nextBtn">
+            ${currentIndex === currentQuestions.length - 1 ? 'Finish Quiz' : 'Next Question'}
+          </button>
+        </div>
+      `;
+
+      quizApp.querySelectorAll('.option-btn').forEach(btn => {
+        btn.addEventListener('click', () => handleOptionClick(btn, q));
+      });
+
+      const nextBtn = document.getElementById('nextBtn');
+      if (nextBtn) {
+        nextBtn.addEventListener('click', handleNext);
+      }
+    }
+
+    function handleOptionClick(clickedBtn, q) {
+      if (answered) return;
+      answered = true;
+
+      const chosen = clickedBtn.getAttribute('data-opt');
+      const correct = q.correct;
+      const isCorrect = chosen === correct;
+
+      if (isCorrect) {
+        score++;
+        clickedBtn.classList.add('correct');
+      } else {
+        clickedBtn.classList.add('incorrect');
+        const correctBtn = quizApp.querySelector(`.option-btn[data-opt="${correct}"]`);
+        if (correctBtn) correctBtn.classList.add('correct');
+      }
+
+      quizApp.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+
+      if (q.explanation) {
+        const expBox = document.getElementById('explanationBox');
+        expBox.className = 'explanation';
+        expBox.innerHTML = `<strong>Explanation:</strong> ${escapeHtml(q.explanation)}`;
+        expBox.style.display = 'block';
+      }
+
+      document.getElementById('actionRow').style.display = 'flex';
+    }
+
+    function handleNext() {
+      currentIndex++;
+      if (currentIndex < currentQuestions.length) {
+        renderCurrentQuestion();
+      } else {
+        renderCompletion();
+      }
+    }
+
+    function renderCompletion() {
+      const total = currentQuestions.length;
+      const pct = Math.round((score / total) * 100);
+
+      quizApp.innerHTML = `
+        <div class="score-screen">
+          <h2>Quiz Completed</h2>
+          <div class="score-num">${score} / ${total}</div>
+          <p>${pct}% Accuracy</p>
+          <div id="logStatus" class="log-status">Recording progress...</div>
+        </div>
+      `;
+
+      google.script.run
+        .withSuccessHandler(msg => {
+          const el = document.getElementById('logStatus');
+          if (el) el.innerText = msg;
+        })
+        .withFailureHandler(err => {
+          const el = document.getElementById('logStatus');
+          if (el) el.innerText = 'Progress log failed: ' + (err.message || err);
+        })
+        .recordProgress(selectedDay, score, total);
+    }
+
+    function showError(err) {
+      quizApp.innerHTML = `<div class="status-msg" style="color: var(--danger);">Error: ${escapeHtml(err.message || err)}</div>`;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    window.addEventListener('load', () => fetchBatch(selectedDay));
+  </script>
+</body>
+</html>
