@@ -87,13 +87,6 @@
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
     }
 
-    .status-msg {
-      text-align: center;
-      padding: 2rem 0;
-      color: var(--text-muted);
-      font-size: 1rem;
-    }
-
     .quiz-header {
       display: flex;
       justify-content: space-between;
@@ -190,7 +183,6 @@
       font-weight: 600;
       border-radius: 6px;
       cursor: pointer;
-      transition: background-color 0.2s ease;
     }
 
     .next-btn:hover {
@@ -213,12 +205,6 @@
       color: var(--primary);
       margin: 1rem 0;
     }
-
-    .log-status {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin-top: 1rem;
-    }
   </style>
 </head>
 <body>
@@ -227,66 +213,181 @@
     <header>
       <h1>Formal Methods Daily Quiz</h1>
       <nav class="day-selector" id="daySelector">
-        <button class="day-btn active" data-day="1">Day 1 (Q1-20)</button>
-        <button class="day-btn" data-day="2">Day 2 (Q21-40)</button>
-        <button class="day-btn" data-day="3">Day 3 (Q41-60)</button>
-        <button class="day-btn" data-day="4">Day 4 (Q61-80)</button>
+        <button class="day-btn active" data-day="1">Day 1</button>
+        <button class="day-btn" data-day="2">Day 2</button>
+        <button class="day-btn" data-day="3">Day 3</button>
+        <button class="day-btn" data-day="4">Day 4</button>
         <button class="day-btn" data-day="5">Day 5+ (Exam Mode)</button>
       </nav>
     </header>
 
-    <main id="quizApp" class="card">
-      <div id="loading" class="status-msg">Loading practice batch...</div>
-    </main>
+    <main id="quizApp" class="card"></main>
   </div>
 
   <script>
+    const QUESTION_BANK = [
+      {
+        id: "Q1",
+        category: "Set Theory",
+        question: "Given universal range D = 1..12, and defined subsets A = {1, 2, 3, 4, 5, 6, 7, 8}, B = {1, 4, 7, 9, 10}, and C = {2, 4, 6}, what is the result of the B set expression (A - B) /\\ C?",
+        options: { A: "{2, 4, 6}", B: "{2, 6}", C: "{1, 4, 7}", D: "{3, 5, 8}" },
+        correct: "B",
+        explanation: "A \\ B = {2, 3, 5, 6, 8}. Intersecting with C = {2, 4, 6} yields {2, 6}."
+      },
+      {
+        id: "Q2",
+        category: "Set Theory",
+        question: "For M = {x | x : NAT & x <= 15 & x mod 3 = 0}, N = {y | y : NAT & y <= 15 & y mod 2 = 1}, and P = {{2, 4}, {4, 6, 8}, {8, 10, 12}}, which statement is TRUE?",
+        options: { A: "⋂ P = {4}", B: "(3 : M) & (3 /: N)", C: "min(M) = min(N) or 3..9 <: (N \\/ M)", D: "(M - N) /= (N - M)" },
+        correct: "D",
+        explanation: "M \\ N = {0, 6, 12} while N \\ M = {1, 5, 7, 11, 13}, so (M - N) /= (N - M) is TRUE."
+      },
+      {
+        id: "Q3",
+        category: "Binary Relations",
+        question: "Given favourites = { Alice |-> Black, Alice |-> Green, Bob |-> Red, Carl |-> Blue, Ellen |-> Green }, what is the result of the relational override favourites <+ { Bob |-> Green, Dina |-> Red }?",
+        options: {
+          A: "{ Alice |-> Black, Alice |-> Green, Bob |-> Red, Bob |-> Green, Carl |-> Blue, Ellen |-> Green, Dina |-> Red }",
+          B: "{ Alice |-> Black, Alice |-> Green, Bob |-> Green, Carl |-> Blue, Ellen |-> Green, Dina |-> Red }",
+          C: "{ Bob |-> Green, Dina |-> Red }",
+          D: "{ Alice |-> Black, Alice |-> Green, Carl |-> Blue, Ellen |-> Green }"
+        },
+        correct: "B",
+        explanation: "Override replaces Bob's targets with Green, adds Dina |-> Red, and preserves others."
+      },
+      {
+        id: "Q4",
+        category: "Binary Relations",
+        question: "Given favorite_subject = {Alice|->Math, Alice|->Science, Bob|->History, Charlie|->Art, David|->English, Eve|->Music, Frank|->Science}, what is the result of favorite_subject |>> {Math, Science, History}?",
+        options: {
+          A: "{Alice |-> Math, Alice |-> Science, Bob |-> History}",
+          B: "{Charlie |-> Art, David |-> English, Eve |-> Music}",
+          C: "{Charlie, David, Eve}",
+          D: "{Art, English, Music}"
+        },
+        correct: "B",
+        explanation: "Range anti-restriction removes pairs pointing to Math, Science, or History."
+      },
+      {
+        id: "Q5",
+        category: "Functions",
+        question: "A system mandates mapping every registered Employee to a unique system ID. Every employee must have an ID, no two employees share an ID, and some IDs may remain unassigned. Which B function arrow models this?",
+        options: {
+          A: "hasEmployeeID : Employee +-> ID",
+          B: "hasEmployeeID : Employee -->> ID",
+          C: "hasEmployeeID : Employee >-> ID",
+          D: "hasEmployeeID : Employee >->> ID"
+        },
+        correct: "C",
+        explanation: "Totality + Injectivity + Non-surjectivity = Total Injection (>->)."
+      },
+      {
+        id: "Q6",
+        category: "Functions",
+        question: "Given Vehicle = {Car, Bus, Bike, Boat, Plane} and Fuel = {Petrol, Diesel, Electric, None}, with fuelType = {Car|->Petrol, Bus|->Diesel, Bike|->Electric, Boat|->Diesel, Plane|->Petrol}, what is the classification of fuelType?",
+        options: {
+          A: "Total Function (Vehicle --> Fuel)",
+          B: "Total Injection (Vehicle >-> Fuel)",
+          C: "Partial Function (Vehicle +-> Fuel)",
+          D: "Total Bijection (Vehicle >->> Fuel)"
+        },
+        correct: "A",
+        explanation: "Every vehicle maps to a fuel, but Petrol is shared and None is unused. Hence total function."
+      },
+      {
+        id: "Q7",
+        category: "Predicate Logic",
+        question: "Given A = {4, 6, 10} and B = {2, 3, 5}, evaluate Predicate 1: !(xx).(xx : A => #(yy).(yy : B & xx mod yy = 0)) and Predicate 2: #(yy).(yy : B & !(xx).(xx : A => xx mod yy = 0)).",
+        options: {
+          A: "Predicate 1 is True; Predicate 2 is True",
+          B: "Predicate 1 is True; Predicate 2 is False",
+          C: "Predicate 1 is False; Predicate 2 is True",
+          D: "Predicate 1 is False; Predicate 2 is False"
+        },
+        correct: "A",
+        explanation: "yy = 2 in B divides all elements in A, satisfying both predicates."
+      },
+      {
+        id: "Q8",
+        category: "Predicate Logic",
+        question: "Given A = {1, 2, 3, 4, 5} and B = {2, 3, 5, 7} over NAT, which of the following logical statements evaluates to TRUE?",
+        options: {
+          A: "!(n).(n : A => n+1 : B)",
+          B: "!(n).(n : A => #(m).(m : B & m < n))",
+          C: "#(n).(n : A & !(m).(m : B => m < n))",
+          D: "#(n).(n : B & n+1 : A)"
+        },
+        correct: "D",
+        explanation: "For n = 2 in B, n + 1 = 3 is in A. The witness holds."
+      },
+      {
+        id: "Q9",
+        category: "Relations & Orders",
+        question: "Let A = {1, 2, 3} and R = {(1,1), (2,2), (3,3), (1,2)}. Is R an equivalence relation on A?",
+        options: {
+          A: "Yes, R satisfies reflexivity, symmetry, and transitivity.",
+          B: "No, R violates reflexivity.",
+          C: "No, R is reflexive and transitive but violates symmetry.",
+          D: "No, R is symmetric but violates transitivity."
+        },
+        correct: "C",
+        explanation: "Contains identity elements and is transitive, but missing (2,1) so symmetry fails."
+      },
+      {
+        id: "Q10",
+        category: "Relations & Orders",
+        question: "On set A = {1, 2, 3}, which of the following relations constitutes an EQUIVALENCE RELATION?",
+        options: {
+          A: "R = {(1,1), (2,2), (1,2), (2,1), (1,3), (3,1)}",
+          B: "R = {(1,1), (2,2), (3,3), (1,2)}",
+          C: "R = {(1,1), (2,2), (3,3), (1,2), (2,1), (2,3), (3,2), (1,3), (3,1)}",
+          D: "R = {(1,1), (2,2), (3,3), (1,2), (2,1), (1,3), (3,1)}"
+        },
+        correct: "C",
+        explanation: "Full Cartesian product A x A satisfies reflexivity, symmetry, and transitivity."
+      },
+      {
+        id: "Q11",
+        category: "Abstract Machine Notation",
+        question: "In B-Method, if operation addNewHouse(newHouse) has precondition PRE newHouse : NAT1 & newHouse /: houseNumbers THEN houseNumbers := houseNumbers \\/ {newHouse} END, what occurs if invoked when newHouse /: houseNumbers is False?",
+        options: {
+          A: "The machine automatically invokes an ELSE fallback path and ignores the operation.",
+          B: "A precondition contract violation occurs, invalidating proof obligations and causing undefined behavior.",
+          C: "The machine adds the duplicate value to houseNumbers without throwing an exception.",
+          D: "The variable houseNumbers is re-initialized to the empty set {}."
+        },
+        correct: "B",
+        explanation: "Violating an operation's precondition breaches the contract, leading to undefined behavior."
+      }
+    ];
+
     let currentQuestions = [];
     let currentIndex = 0;
     let score = 0;
-    let selectedDay = 1;
     let answered = false;
 
     const quizApp = document.getElementById('quizApp');
     const daySelector = document.getElementById('daySelector');
+
+    function loadQuiz(isExamMode) {
+      if (isExamMode) {
+        currentQuestions = [...QUESTION_BANK].sort(() => Math.random() - 0.5);
+      } else {
+        currentQuestions = [...QUESTION_BANK];
+      }
+      currentIndex = 0;
+      score = 0;
+      renderCurrentQuestion();
+    }
 
     daySelector.addEventListener('click', (e) => {
       const btn = e.target.closest('.day-btn');
       if (!btn) return;
       document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      selectedDay = btn.getAttribute('data-day');
-      fetchBatch(selectedDay);
+      const day = parseInt(btn.getAttribute('data-day'), 10);
+      loadQuiz(day > 4);
     });
-
-    function fetchBatch(day) {
-      quizApp.innerHTML = '<div class="status-msg">Loading practice batch...</div>';
-      google.script.run
-        .withSuccessHandler(renderQuizBatch)
-        .withFailureHandler(showError)
-        .getDailyQuestions(day);
-    }
-
-    function renderQuizBatch(res) {
-      if (!res) {
-        showError('No response received from the backend.');
-        return;
-      }
-      if (res.error) {
-        showError(res.error);
-        return;
-      }
-      currentQuestions = res.questions || [];
-      currentIndex = 0;
-      score = 0;
-
-      if (!currentQuestions.length) {
-        quizApp.innerHTML = '<div class="status-msg">No questions available in the sheet for this selection.</div>';
-        return;
-      }
-
-      renderCurrentQuestion();
-    }
 
     function renderCurrentQuestion() {
       answered = false;
@@ -295,7 +396,7 @@
 
       quizApp.innerHTML = `
         <div class="quiz-header">
-          <span class="category-badge">${escapeHtml(q.category || 'Formal Methods')}</span>
+          <span class="category-badge">${escapeHtml(q.category)}</span>
           <span>Question ${currentIndex + 1} of ${currentQuestions.length}</span>
         </div>
         <div class="question-text">${escapeHtml(q.question)}</div>
@@ -318,10 +419,7 @@
         btn.addEventListener('click', () => handleOptionClick(btn, q));
       });
 
-      const nextBtn = document.getElementById('nextBtn');
-      if (nextBtn) {
-        nextBtn.addEventListener('click', handleNext);
-      }
+      document.getElementById('nextBtn').addEventListener('click', handleNext);
     }
 
     function handleOptionClick(clickedBtn, q) {
@@ -329,15 +427,14 @@
       answered = true;
 
       const chosen = clickedBtn.getAttribute('data-opt');
-      const correct = q.correct;
-      const isCorrect = chosen === correct;
+      const isCorrect = chosen === q.correct;
 
       if (isCorrect) {
         score++;
         clickedBtn.classList.add('correct');
       } else {
         clickedBtn.classList.add('incorrect');
-        const correctBtn = quizApp.querySelector(`.option-btn[data-opt="${correct}"]`);
+        const correctBtn = quizApp.querySelector(`.option-btn[data-opt="${q.correct}"]`);
         if (correctBtn) correctBtn.classList.add('correct');
       }
 
@@ -364,31 +461,15 @@
 
     function renderCompletion() {
       const total = currentQuestions.length;
-      const pct = total > 0 ? Math.round((score / total) * 100) : 0;
+      const pct = Math.round((score / total) * 100);
 
       quizApp.innerHTML = `
         <div class="score-screen">
           <h2>Quiz Completed</h2>
           <div class="score-num">${score} / ${total}</div>
           <p>${pct}% Accuracy</p>
-          <div id="logStatus" class="log-status">Recording progress...</div>
         </div>
       `;
-
-      google.script.run
-        .withSuccessHandler(msg => {
-          const el = document.getElementById('logStatus');
-          if (el) el.innerText = msg;
-        })
-        .withFailureHandler(err => {
-          const el = document.getElementById('logStatus');
-          if (el) el.innerText = 'Progress log failed: ' + (err.message || err);
-        })
-        .recordProgress(selectedDay, score, total);
-    }
-
-    function showError(err) {
-      quizApp.innerHTML = `<div class="status-msg" style="color: var(--danger); line-height: 1.5;">${escapeHtml(err.message || err)}</div>`;
     }
 
     function escapeHtml(str) {
@@ -401,7 +482,8 @@
         .replace(/'/g, '&#039;');
     }
 
-    window.addEventListener('load', () => fetchBatch(selectedDay));
+    // Auto-load questions immediately
+    loadQuiz(false);
   </script>
 </body>
 </html>
