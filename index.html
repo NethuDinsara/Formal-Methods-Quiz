@@ -268,6 +268,10 @@
     }
 
     function renderQuizBatch(res) {
+      if (!res) {
+        showError('No response received from the backend.');
+        return;
+      }
       if (res.error) {
         showError(res.error);
         return;
@@ -277,7 +281,7 @@
       score = 0;
 
       if (!currentQuestions.length) {
-        quizApp.innerHTML = '<div class="status-msg">No questions available for this selection.</div>';
+        quizApp.innerHTML = '<div class="status-msg">No questions available in the sheet for this selection.</div>';
         return;
       }
 
@@ -384,7 +388,7 @@
     }
 
     function showError(err) {
-      quizApp.innerHTML = `<div class="status-msg" style="color: var(--danger);">Error: ${escapeHtml(err.message || err)}</div>`;
+      quizApp.innerHTML = `<div class="status-msg" style="color: var(--danger); line-height: 1.5;">${escapeHtml(err.message || err)}</div>`;
     }
 
     function escapeHtml(str) {
